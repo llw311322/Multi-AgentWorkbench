@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>午盘复盘 · 大盘可视化</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo"></span>
+    <span>午盘复盘</span>
+    <a class="nav-link" href="/">大盘图表 →</a>
+  </div>
+  <div class="topbar-right">
+    <div class="tabs" id="sessionTabs">
+      <button data-session="noon" class="active">午盘 11:30</button>
+      <button data-session="close">收盘 15:00</button>
+    </div>
+    <input type="date" id="datePick" class="date-input">
+    <button id="refreshBtn" class="btn-slim">重新计算</button>
+    <span id="stateTag" class="state">--</span>
+  </div>
+</header>
+
+<main class="page">
+  <section class="hero">
+    <div class="hero-head">
+      <span class="hero-tag" id="heroTag">--</span>
+      <span class="hero-time" id="heroTime">--</span>
+    </div>
+    <h1 class="hero-headline" id="headline">加载中…</h1>
+    <div class="metric-grid" id="metrics"></div>
+  </section>
+
+  <div class="review-grid">
+    <div class="col">
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-title"><h1>涨跌幅分布</h1><span class="panel-meta" id="distMeta">全市场个股家数</span></div>
+        </div>
+        <div id="distChart" class="chart-mini"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-title"><h1>分市场结构</h1><span class="panel-meta">按代码段归属</span></div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" id="boardTable">
+            <thead>
+              <tr><th>板块</th><th class="num">家数</th><th class="num">涨/跌</th><th class="num">加权涨幅</th><th class="num">换手率</th><th class="num">成交额</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-title"><h1>分节解读</h1><span class="panel-meta" id="sectionMeta">--</span></div>
+        </div>
+        <div id="sections" class="sections"></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div class="panel-title"><h1>指标口径</h1><span class="panel-meta">数字是怎么算出来的</span></div>
+    </div>
+    <dl class="glossary" id="glossary"></dl>
+  </section>
+
+  <div class="footnote" id="footnote">
+    数据来源：东方财富公开行情接口 · 由本地采集服务计算
+  </div>
+</main>
+
+<script src="/static/vendor/echarts.min.js?v=0.3.0"></script>
+<script src="/static/noon.js?v=0.3.0"></script>
+</body>
+</html>

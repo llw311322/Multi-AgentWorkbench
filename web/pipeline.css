@@ -1,0 +1,189 @@
+/* ===========================================================
+   协作流水线 · 拆分 / 执行 / 反馈
+   只新增，不覆盖 styles.css 里的任何既有规则
+   =========================================================== */
+
+/* ---------- 通用小件 ---------- */
+/* 节点状态徽章（补齐 styles.css 里缺的四种状态） */
+.badge.pending{background:rgba(255,255,255,.07);color:var(--dim)}
+.badge.ready{background:rgba(46,167,255,.14);color:#BFE2FF}
+.badge.review{background:rgba(255,180,84,.15);color:var(--amber)}
+.badge.blocked{background:rgba(255,77,109,.15);color:var(--rose)}
+
+.af-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.af-spread{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.af-mono{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.af-hint{font-size:11.5px;color:var(--dim);line-height:1.6}
+.af-sep{height:1px;background:var(--stroke);margin:4px 0}
+.af-empty{
+  padding:34px 20px;text-align:center;color:var(--dim);font-size:12.5px;
+  border:1px dashed var(--stroke-2);border-radius:var(--r-sm);
+}
+
+/* ---------- 连接状态 ---------- */
+.af-live{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-family:var(--mono);color:var(--dim)}
+.af-live i{width:7px;height:7px;border-radius:99px;background:var(--teal);box-shadow:0 0 0 3px rgba(19,221,196,.15)}
+.af-live.off i{background:var(--rose);box-shadow:0 0 0 3px rgba(255,77,109,.15)}
+
+/* ---------- 需求输入 ---------- */
+.af-input-card{display:flex;flex-direction:column;gap:12px}
+.af-textarea{
+  width:100%;min-height:104px;resize:vertical;
+  background:rgba(255,255,255,.04);border:1px solid var(--stroke);
+  border-radius:var(--r-sm);padding:12px 14px;
+  color:var(--text);font-family:var(--font);font-size:13px;line-height:1.6;
+  outline:none;transition:border-color .15s;
+}
+.af-textarea:focus{border-color:rgba(46,167,255,.5);background:rgba(46,167,255,.05)}
+.af-input{
+  width:100%;height:34px;padding:0 12px;
+  background:rgba(255,255,255,.04);border:1px solid var(--stroke);
+  border-radius:8px;color:var(--text);font-size:12.5px;outline:none;
+}
+.af-input:focus{border-color:rgba(46,167,255,.5)}
+.af-select{
+  height:34px;padding:0 10px;border-radius:8px;font-size:12.5px;
+  background:var(--card-2);border:1px solid var(--stroke);color:var(--text);outline:none;
+  max-width:100%;
+}
+.af-btn{
+  display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px;
+  border-radius:var(--r-pill);border:1px solid var(--stroke-2);
+  font-size:12.5px;color:var(--text);background:rgba(255,255,255,.05);
+  transition:background .15s,border-color .15s;white-space:nowrap;
+}
+.af-btn:hover{background:rgba(255,255,255,.1)}
+.af-btn.primary{background:linear-gradient(135deg,#2EA7FF,#6E7BFF);border-color:transparent;color:#fff;font-weight:500}
+.af-btn.primary:hover{filter:brightness(1.08)}
+.af-btn.danger{border-color:rgba(255,77,109,.4);color:#FFB3C1;background:rgba(255,77,109,.1)}
+.af-btn.ok{border-color:rgba(19,221,196,.42);color:#9FF6EC;background:rgba(19,221,196,.1)}
+.af-btn.sm{height:28px;padding:0 10px;font-size:11.5px}
+.af-btn:disabled{opacity:.42;cursor:not-allowed}
+.af-chips{display:flex;gap:6px;flex-wrap:wrap}
+.af-chip{
+  font-size:11px;padding:4px 10px;border-radius:99px;cursor:pointer;
+  border:1px solid var(--stroke);color:var(--muted);background:rgba(255,255,255,.03);
+}
+.af-chip:hover{border-color:var(--stroke-2);color:var(--text)}
+
+/* ---------- DAG 画布 ---------- */
+.af-dag-wrap{
+  overflow:auto;border-radius:var(--r-sm);
+  border:1px solid var(--stroke);background:
+    radial-gradient(circle at 1px 1px, rgba(255,255,255,.055) 1px, transparent 0) 0 0/22px 22px,
+    rgba(255,255,255,.012);
+}
+.af-dag{display:block;min-width:100%}
+.af-node{cursor:pointer}
+.af-node rect.box{transition:filter .15s,stroke .15s}
+.af-node:hover rect.box{filter:brightness(1.35)}
+.af-node.is-sel rect.box{stroke-width:2.4}
+.af-node text{pointer-events:none;user-select:none}
+.af-edge{fill:none;stroke:rgba(255,255,255,.2);stroke-width:1.5}
+.af-edge.hot{stroke:rgba(46,167,255,.6);stroke-width:2}
+@keyframes afPulse{0%,100%{opacity:.28}50%{opacity:.85}}
+.af-pulse{animation:afPulse 1.6s ease-in-out infinite}
+
+/* ---------- 看板 ---------- */
+.af-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;align-items:start}
+@media (max-width:1420px){.af-board{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.af-col{
+  display:flex;flex-direction:column;gap:10px;min-height:120px;
+  background:rgba(255,255,255,.018);border:1px solid var(--stroke);
+  border-radius:var(--r-sm);padding:10px;
+}
+.af-col-head{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);letter-spacing:.3px}
+.af-col-head b{font-family:var(--mono);font-size:11px;color:var(--dim);margin-left:auto}
+.af-dot{width:7px;height:7px;border-radius:99px;flex:none}
+.af-tcard{
+  background:var(--card-solid);border:1px solid var(--stroke);border-radius:10px;
+  padding:10px 11px;display:flex;flex-direction:column;gap:6px;cursor:pointer;
+  transition:border-color .15s,transform .12s;
+}
+.af-tcard:hover{border-color:var(--stroke-2);transform:translateY(-1px)}
+.af-tcard .tid{font-family:var(--mono);font-size:10px;color:var(--dim)}
+.af-tcard .ttl{font-size:12.5px;color:var(--text);font-weight:500;line-height:1.4}
+.af-tcard .meta{display:flex;gap:8px;flex-wrap:wrap;font-family:var(--mono);font-size:10px;color:var(--dim)}
+.af-tcard.running{border-color:rgba(46,167,255,.45);box-shadow:0 0 0 1px rgba(46,167,255,.12)}
+.af-tcard.blocked,.af-tcard.failed{border-color:rgba(255,77,109,.4)}
+.af-tcard.review{border-color:rgba(255,180,84,.4)}
+.af-tcard.done{opacity:.86}
+
+/* ---------- 闸门卡片 ---------- */
+.af-gate{
+  border:1px solid rgba(255,180,84,.32);border-radius:var(--r-sm);
+  background:linear-gradient(180deg,rgba(255,180,84,.08),rgba(255,180,84,.02));
+  padding:14px 16px;display:flex;flex-direction:column;gap:10px;
+}
+.af-gate-head{display:flex;align-items:center;gap:10px}
+.af-gate-kind{
+  font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:6px;
+  background:rgba(255,180,84,.16);color:var(--amber);letter-spacing:.4px;
+}
+.af-gate-title{font-size:13px;font-weight:600}
+.af-gate-body{font-size:12px;color:var(--muted);line-height:1.65}
+.af-gate-actions{display:flex;gap:8px;flex-wrap:wrap}
+.af-pre{
+  font-family:var(--mono);font-size:11px;line-height:1.6;color:var(--muted);
+  background:rgba(0,0,0,.28);border:1px solid var(--stroke);border-radius:8px;
+  padding:10px 12px;max-height:280px;overflow:auto;white-space:pre-wrap;word-break:break-word;
+}
+.af-pre.tall{max-height:520px}
+
+/* ---------- 验收表 ---------- */
+.af-check{display:flex;align-items:flex-start;gap:8px;font-size:11.5px;color:var(--muted);padding:3px 0}
+.af-check .mark{font-family:var(--mono);font-size:10px;flex:none;width:38px}
+.af-check.pass .mark{color:var(--teal)}
+.af-check.fail .mark{color:var(--rose)}
+.af-check.warn .mark{color:var(--amber)}
+
+/* ---------- 事件流 ---------- */
+.af-events{display:flex;flex-direction:column;gap:0;border-left:1px solid var(--stroke);padding-left:14px;margin-left:5px}
+.af-ev{position:relative;padding:0 0 12px;font-size:12px;color:var(--muted);display:flex;gap:10px;align-items:baseline}
+.af-ev::before{
+  content:"";position:absolute;left:-19px;top:6px;width:7px;height:7px;border-radius:99px;
+  background:var(--dim);box-shadow:0 0 0 3px rgba(255,255,255,.05);
+}
+.af-ev.ok::before{background:var(--teal);box-shadow:0 0 0 3px rgba(19,221,196,.15)}
+.af-ev.run::before{background:var(--cyan);box-shadow:0 0 0 3px rgba(46,167,255,.18)}
+.af-ev.gate::before{background:var(--amber);box-shadow:0 0 0 3px rgba(255,180,84,.18)}
+.af-ev.bad::before{background:var(--rose);box-shadow:0 0 0 3px rgba(255,77,109,.18)}
+.af-ev .ts{font-family:var(--mono);font-size:10px;color:var(--dim);flex:none;width:62px}
+.af-ev .nm{color:var(--text);font-size:11.5px;flex:none;width:104px;font-family:var(--mono)}
+.af-ev .dt{flex:1;min-width:0;color:var(--muted);font-size:11.5px;word-break:break-word}
+
+/* ---------- 视图栅格 ---------- */
+.af-split{display:grid;grid-template-columns:minmax(0,1.55fr) 360px;gap:var(--gap);align-items:start}
+@media (max-width:1280px){.af-split{grid-template-columns:minmax(0,1fr)}}
+.af-stack{display:flex;flex-direction:column;gap:var(--gap)}
+.af-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--gap)}
+@media (max-width:1100px){.af-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ---------- 抽屉内表单 ---------- */
+.af-field{display:flex;flex-direction:column;gap:5px}
+.af-field > label{font-size:11px;color:var(--dim);letter-spacing:.3px}
+.af-dep{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);padding:5px 0}
+.af-dep input{accent-color:#2EA7FF}
+.af-badge-soft{
+  display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:99px;
+  font-size:10.5px;font-family:var(--mono);background:rgba(255,255,255,.06);color:var(--muted);
+}
+
+/* ---------- 外部应用（AI 应用页） ---------- */
+.af-chip.ok{color:#9FF6EC;border-color:rgba(19,221,196,.4);background:rgba(19,221,196,.08);cursor:default}
+.af-chip.bad{color:#FFB3C1;border-color:rgba(255,77,109,.35);background:rgba(255,77,109,.07);cursor:default}
+.af-ext-err{margin-top:10px;padding:8px 12px;border:1px solid rgba(255,77,109,.4);border-radius:8px;color:#FFB3C1;font-size:12px;white-space:pre-line;line-height:1.6;word-break:break-word}
+.af-node-title{font-size:13px;font-weight:500;color:var(--text);margin:4px 0}
+
+/* ---------- 下拉框深色修正：原生 select 不吃半透明背景，会画成白底 ---------- */
+/* #171427 = 页面底色 #030014 叠 8% 白，与旁边主题输入框的观感一致 */
+select.af-input, select.af-select{
+  appearance:auto;
+  background:#171427;               /* 实色，等效于卡片的半透明底 */
+  color:#f0f0f2;
+  color-scheme:dark;                /* 让展开的选项列表也用深色系统渲染 */
+}
+select.af-input option, select.af-select option, optgroup{
+  background:#171427;               /* 兜底：个别浏览器看 option 自身背景 */
+  color:#f0f0f2;
+}

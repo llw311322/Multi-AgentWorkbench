@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文案生成智能体</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#F0F2F5; color:#1F2937; font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif; min-height:100vh; padding:20px; }
+  .wrap { max-width:960px; margin:0 auto; }
+  .header { text-align:center; padding:28px 0 6px; }
+  .header h1 { font-size:24px; color:#111827; }
+  .header p { font-size:13px; color:#6B7280; margin-top:8px; }
+  .card { background:#FFFFFF; border:1px solid #E5E7EB; border-radius:12px; padding:20px; margin-top:16px; box-shadow:0 2px 12px rgba(0,0,0,0.06); }
+  .card .ctitle { font-size:15px; font-weight:700; color:#0EA5A4; margin-bottom:14px; border-left:4px solid #0EA5A4; padding-left:10px; }
+  .row { display:flex; flex-wrap:wrap; gap:14px; }
+  .field { flex:1 1 200px; min-width:200px; }
+  .field.full { flex:1 1 100%; }
+  label { display:block; font-size:13px; color:#4B5563; margin-bottom:6px; }
+  label .req { color:#EF4444; }
+  input[type=text], input[type=number], select, textarea {
+    width:100%; background:#F9FAFB; border:1px solid #D1D5DB; border-radius:8px;
+    color:#111827; padding:10px 12px; font-size:14px; outline:none;
+  }
+  input:focus, select:focus, textarea:focus { border-color:#0EA5A4; box-shadow:0 0 0 3px rgba(14,165,164,0.15); }
+  textarea { resize:vertical; min-height:80px; font-family:inherit; }
+  .hint { font-size:12px; color:#6B7280; margin-top:4px; }
+  .keytip { font-size:13px; margin-top:6px; }
+  .btn { background:linear-gradient(90deg,#14B8A6,#0EA5E9); color:#fff; border:none; border-radius:8px;
+    padding:12px 30px; font-size:15px; font-weight:700; cursor:pointer; letter-spacing:1px; box-shadow:0 2px 8px rgba(20,184,166,0.25); }
+  .btn:hover { opacity:.92; }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .btn.ghost { background:transparent; color:#0EA5A4; border:1px solid #0EA5A4; box-shadow:none; }
+  .toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+  .loading { display:none; color:#0EA5A4; font-size:14px; margin-top:12px; }
+  .output { display:none; }
+  .preview { background:#FAFBFC; border:1px solid #E5E7EB; border-radius:8px; overflow:auto; max-height:70vh; margin-top:12px; color:#1F2937; }
+  #toast { position:fixed; top:18px; left:50%; transform:translateX(-50%); background:#111827; color:#fff;
+    padding:10px 20px; border-radius:24px; font-size:14px; font-weight:600; display:none; z-index:99; box-shadow:0 4px 16px rgba(0,0,0,0.15); }
+  .upload-row { display:flex; align-items:center; gap:12px; padding:10px 12px; background:#F9FAFB;
+    border:1px solid #E5E7EB; border-radius:8px; margin-top:8px; }
+  .upload-name { color:#111827; font-weight:600; min-width:130px; font-size:13px; }
+  .upload-sug { flex:1; color:#6B7280; font-size:12px; }
+  .upload-row input[type=file] { color:#4B5563; font-size:12px; width:180px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>文案生成智能体</h1>
+    <p>本地部署 · 接入 DeepSeek / 千问 / Kimi / 智谱 / 豆包 · 深色科技排版</p>
+  </div>
+
+  <!-- 配置区 -->
+  <div class="card">
+    <div class="ctitle">① 模型配置</div>
+    <div class="row">
+      <div class="field">
+        <label>厂商</label>
+        <select id="vendor" onchange="onVendorChange()"></select>
+        <div class="keytip" id="keyTip"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主题填写区 -->
+  <div class="card">
+    <div class="ctitle">② 文案主题</div>
+    <div class="row">
+      <div class="field full">
+        <label>主题 <span class="req">*</span></label>
+        <textarea id="topic" placeholder="例：给新手讲清楚「本地部署大模型」这件事，从是什么、为什么到怎么做"></textarea>
+      </div>
+      <div class="field">
+        <label>内容定位</label>
+        <select id="tone">
+          <option value="通俗">通俗</option>
+          <option value="专业">专业</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>字数要求</label>
+        <input type="number" id="word_limit" placeholder="例：2000" min="0">
+      </div>
+    </div>
+    <div class="toolbar">
+      <button class="btn" id="runBtn" onclick="generate()">生成文案</button>
+      <div class="loading" id="loading">正在调用大模型生成中…（长文可能需要 30~120 秒）</div>
+    </div>
+  </div>
+
+  <!-- 输出区 -->
+  <div class="card output" id="outputCard">
+    <div class="ctitle">③ 生成结果（可直接复制到公众号）</div>
+    <div class="toolbar">
+      <button class="btn ghost" onclick="copyArticle()">复制全文</button>
+      <span class="hint" id="metaInfo"></span>
+    </div>
+    <div class="preview" id="preview"></div>
+    <div class="ctitle" style="margin-top:20px">④ 配图回传（方案C：按下方建议下载图片后回传排版）</div>
+    <div id="uploadPanel"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let vendors = [];
+let currentArticleId = null;
+
+function v(id){ return document.getElementById(id).value.trim(); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.style.display='block'; clearTimeout(t._h); t._h=setTimeout(()=>t.style.display='none', 2600); }
+
+async function loadVendors(){
+  try{
+    const r = await fetch('/api/vendors'); const d = await r.json();
+    vendors = d.vendors || []; const sel = document.getElementById('vendor');
+    sel.innerHTML = '';
+    vendors.forEach(x => {
+      const o = document.createElement('option');
+      o.value = x.key; o.textContent = x.name + (x.has_key ? ' ✓已配key' : ' ⚠未配key');
+      sel.appendChild(o);
+    });
+    sel.value = d.active_vendor || 'deepseek';
+    onVendorChange();
+  }catch(e){ toast('加载配置失败：'+e); }
+}
+
+function onVendorChange(){
+  const x = vendors.find(i => i.key === v('vendor')); if(!x) return;
+  const tip = document.getElementById('keyTip');
+  if(x.has_key){ tip.textContent = '✓ 已读取到 API KEY'; tip.style.color='#0EA5A4'; }
+  else { tip.textContent = '✗ 未配置：请在 .env 填 ' + x.key.toUpperCase() + '_API_KEY'; tip.style.color='#EF4444'; }
+}
+
+function collectFields(){
+  return {
+    topic:v('topic'), word_limit:v('word_limit'), tone:v('tone')
+  };
+}
+
+async function generate(){
+  if(!v('topic')){ toast('请先填写主题'); return; }
+  const btn=document.getElementById('runBtn'), loading=document.getElementById('loading');
+  btn.disabled=true; loading.style.display='block';
+  try{
+    const r = await fetch('/api/generate', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ vendor:v('vendor'), fields:collectFields() })
+    });
+    const d = await r.json();
+    if(!d.ok){ toast(d.error || '生成失败'); return; }
+    currentArticleId = d.article_id;
+    document.getElementById('preview').innerHTML = d.html;
+    document.getElementById('metaInfo').textContent = '模型：' + d.vendor_name + ' · ' + d.model + ' · 图片方案：' + d.image_plan_label;
+    renderUploadPanel(d.article);
+    document.getElementById('outputCard').style.display='block';
+    document.getElementById('outputCard').scrollIntoView({behavior:'smooth'});
+    toast('生成完成');
+  }catch(e){ toast('请求失败：'+e); }
+  finally{ btn.disabled=false; loading.style.display='none'; }
+}
+
+function renderUploadPanel(article){
+  const panel = document.getElementById('uploadPanel'); panel.innerHTML='';
+  (article.sections || []).forEach((sec, i) => {
+    const row = document.createElement('div'); row.className='upload-row';
+    row.innerHTML = '<div class="upload-name">0'+(i+1)+' '+esc(sec.heading)+'</div>' +
+      '<div class="upload-sug">'+esc(sec.image_suggestion || '')+'　|　来源：'+esc(sec.image_source || '—')+'</div>' +
+      '<input type="file" accept="image/*" data-idx="'+i+'">';
+    panel.appendChild(row);
+  });
+  panel.querySelectorAll('input[type=file]').forEach(inp => {
+    inp.addEventListener('change', e => uploadImage(parseInt(e.target.dataset.idx), e.target.files[0]));
+  });
+}
+
+async function uploadImage(idx, file){
+  if(!file) return;
+  const fd = new FormData();
+  fd.append('article_id', currentArticleId); fd.append('section_index', idx); fd.append('image', file);
+  try{
+    const r = await fetch('/api/upload_image', {method:'POST', body:fd});
+    const d = await r.json();
+    if(d.ok){ document.getElementById('preview').innerHTML = d.html; toast('图片已排入第 '+(idx+1)+' 节'); }
+    else toast(d.error || '上传失败');
+  }catch(e){ toast('上传失败：'+e); }
+}
+
+function copyArticle(){
+  const el = document.getElementById('preview');
+  const range = document.createRange(); range.selectNodeContents(el);
+  const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+  try{ document.execCommand('copy'); toast('已复制，去公众号编辑器粘贴即可保留深色排版'); }
+  catch(e){ toast('复制失败，请手动 Ctrl+A 复制'); }
+  sel.removeAllRanges();
+}
+
+loadVendors();
+</script>
+</body>
+</html>

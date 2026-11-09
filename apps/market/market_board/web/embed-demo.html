@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>工作台整合示例 · 大盘卡片</title>
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --panel: #ffffff;
+    --line: #e7e9ee;
+    --text: #171a20;
+    --sub: #6a7280;
+    --muted: #9aa1ad;
+    --up: #d03a3a;
+    --down: #0f9d63;
+  }
+  body[data-theme="dark"] {
+    --bg: #0e1116;
+    --panel: #161a21;
+    --line: #262c36;
+    --text: #e7e9ee;
+    --sub: #8b93a3;
+    --muted: #6f7787;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 14px;
+  }
+  .shell { display: grid; grid-template-columns: 208px 1fr; min-height: 100vh; }
+
+  .rail {
+    background: var(--panel);
+    border-right: 1px solid var(--line);
+    padding: 18px 14px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+  .rail-logo { display: flex; align-items: center; gap: 8px; font-weight: 500; padding: 0 8px 16px; }
+  .rail-logo i { width: 10px; height: 10px; border-radius: 3px; background: var(--text); }
+  .nav a {
+    display: block; padding: 8px 10px; border-radius: 8px; color: var(--sub);
+    text-decoration: none; font-size: 13px; margin-bottom: 2px;
+  }
+  .nav a:hover { background: #f2f4f7; color: var(--text); }
+  .nav a.on { background: #eef2fb; color: #2f6fed; }
+  body[data-theme="dark"] .nav a:hover { background: #1e232c; }
+  body[data-theme="dark"] .nav a.on { background: #1b2433; color: #7aa7f5; }
+
+  .main { padding: 22px 26px 40px; min-width: 0; }
+  .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+  .head h1 { margin: 0; font-size: 20px; font-weight: 500; letter-spacing: -0.2px; }
+  .head p { margin: 6px 0 0; color: var(--sub); font-size: 12px; }
+
+  .btn {
+    appearance: none; border: 1px solid var(--line); background: var(--panel); color: var(--text);
+    font: inherit; font-size: 12px; padding: 7px 13px; border-radius: 8px; cursor: pointer;
+  }
+  .btn:hover { border-color: var(--muted); }
+
+  .grid { display: grid; grid-template-columns: 1.55fr 1fr; gap: 14px; }
+  .col { display: grid; gap: 14px; align-content: start; }
+  @media (max-width: 1000px) { .shell { grid-template-columns: 1fr; } .rail { display: none; } .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .card h2 { margin: 0 0 4px; font-size: 14px; font-weight: 500; }
+  .card .hint { margin: 0 0 12px; font-size: 12px; color: var(--muted); }
+
+  .brief-summary { font-size: 13px; line-height: 1.8; color: var(--text); margin: 0 0 12px; }
+  .brief-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 0; border-top: 1px solid var(--line); font-size: 13px;
+  }
+  .brief-row span:first-child { color: var(--sub); }
+  .num { font-variant-numeric: tabular-nums; }
+  .note { margin: 12px 0 0; font-size: 11px; color: var(--muted); line-height: 1.6; }
+
+  .status-line { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--sub); margin-bottom: 8px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--down); }
+  .dot.off { background: var(--muted); }
+  pre.log {
+    margin: 0; font-size: 11px; line-height: 1.7; color: var(--sub);
+    white-space: pre-wrap; word-break: break-all; font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+</style>
+</head>
+<body data-theme="light">
+<div class="shell">
+  <aside class="rail">
+    <div class="rail-logo"><i></i><span>我的工作台</span></div>
+    <nav class="nav">
+      <a href="#">概览</a>
+      <a href="#" class="on">大盘</a>
+      <a href="#">自选</a>
+      <a href="#">复盘</a>
+      <a href="#">知识库</a>
+      <a href="#">设置</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="head">
+      <div>
+        <h1>大盘</h1>
+        <p id="subline">组件以 &lt;market-chart&gt; 形式嵌入，可随时切换主题与周期</p>
+      </div>
+      <button class="btn" id="themeBtn">切换深色</button>
+    </div>
+
+    <div class="grid">
+      <div class="col">
+        <market-chart code="000001.SH" period="minute" height="380"></market-chart>
+        <market-chart code="399006.SZ" period="day" height="300" controls="false"></market-chart>
+      </div>
+
+      <div class="col">
+        <div class="card">
+          <h2>今日复盘</h2>
+          <p class="hint" id="briefMeta">加载中…</p>
+          <p class="brief-summary" id="briefSummary"></p>
+          <div id="briefRows"></div>
+          <p class="note" id="briefNote"></p>
+        </div>
+
+        <div class="card">
+          <h2>采集状态</h2>
+          <p class="hint">自动采集进程</p>
+          <div class="status-line"><span class="dot off" id="dot"></span><span id="collectorState">--</span></div>
+          <pre class="log" id="collectorLog">--</pre>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/static/widget.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  function pctText(v) {
+    return (v > 0 ? "+" : "") + Number(v).toFixed(2) + "%";
+  }
+  function colorOf(v) {
+    return v > 0 ? "var(--up)" : v < 0 ? "var(--down)" : "var(--sub)";
+  }
+
+  fetch("/api/brief", { cache: "no-store" })
+    .then(function (r) { return r.json(); })
+    .then(function (body) {
+      var d = body.data;
+      document.getElementById("briefMeta").textContent =
+        d.asOf + " · " + (d.marketState || "") + " · 生成于 " + d.generatedAt;
+      document.getElementById("briefSummary").textContent = d.summary;
+      document.getElementById("briefRows").innerHTML = d.indices
+        .map(function (it) {
+          return (
+            "<div class='brief-row'><span>" + it.name + "</span>" +
+            "<span class='num'><b style='color:" + colorOf(it.pct) + ";font-weight:500'>" +
+            pctText(it.pct) + "</b>&nbsp;&nbsp;" +
+            "<span style='color:var(--muted)'>" + it.close.toFixed(2) + "</span></span></div>"
+          );
+        })
+        .join("");
+      document.getElementById("briefNote").textContent = d.note;
+    })
+    .catch(function (e) {
+      document.getElementById("briefMeta").textContent = "复盘加载失败：" + e.message;
+    });
+
+  fetch("/api/health", { cache: "no-store" })
+    .then(function (r) { return r.json(); })
+    .then(function (body) {
+      var c = body.collector || {};
+      var on = !!c.running;
+      document.getElementById("dot").className = "dot" + (on ? "" : " off");
+      document.getElementById("collectorState").textContent = on
+        ? "调度运行中 · " + (body.marketState || "")
+        : "未开启（启动时加 --auto-sync）";
+      document.getElementById("collectorLog").textContent =
+        (c.recentLogs && c.recentLogs.length ? c.recentLogs.join("\n") : "暂无采集记录");
+    })
+    .catch(function () {});
+
+  var btn = document.getElementById("themeBtn");
+
+  var qp = new URLSearchParams(location.search);
+  var initial = qp.get("theme") === "dark" ? "dark" : "light";
+  document.body.dataset.theme = initial;
+  btn.textContent = initial === "dark" ? "切换浅色" : "切换深色";
+  Array.prototype.forEach.call(document.querySelectorAll("market-chart"), function (el) {
+    el.setAttribute("theme", initial);
+  });
+
+  btn.addEventListener("click", function () {
+    var next = document.body.dataset.theme === "dark" ? "light" : "dark";
+    document.body.dataset.theme = next;
+    btn.textContent = next === "dark" ? "切换浅色" : "切换深色";
+    Array.prototype.forEach.call(document.querySelectorAll("market-chart"), function (el) {
+      el.setAttribute("theme", next);
+    });
+  });
+})();
+</script>
+</body>
+</html>

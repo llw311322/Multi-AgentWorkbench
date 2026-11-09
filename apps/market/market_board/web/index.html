@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>大盘可视化</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo"></span>
+    <span>大盘可视化</span>
+  </div>
+  <div class="topbar-right">
+    <span id="marketState" class="state">--</span>
+    <span id="serverTime" class="time">--</span>
+  </div>
+</header>
+
+<main class="page">
+  <section id="cards" class="cards"></section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div class="panel-title">
+        <h1 id="chartTitle">上证指数</h1>
+        <span id="chartMeta" class="panel-meta">--</span>
+      </div>
+      <div class="tabs" id="tabs">
+        <button data-period="minute" class="active">分时</button>
+        <button data-period="day">日K</button>
+        <button data-period="week">周K</button>
+        <button data-period="month">月K</button>
+        <button data-period="year">年K</button>
+      </div>
+    </div>
+    <div id="chart" class="chart"></div>
+    <div class="footnote">
+      数据来源：东方财富公开行情接口 · 周/月/年线由日线聚合生成 · 分时按 1 分钟采样
+      &nbsp;·&nbsp;<a href="/noon">午盘/收盘复盘 →</a>
+      &nbsp;·&nbsp;<a href="/demo">组件嵌入示例 →</a>
+    </div>
+  </section>
+</main>
+
+<script src="/static/vendor/echarts.min.js?v=0.2.0"></script>
+<script src="/static/chart-core.js?v=0.2.0"></script>
+<script src="/static/app.js?v=0.2.0"></script>
+</body>
+</html>

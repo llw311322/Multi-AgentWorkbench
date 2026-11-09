@@ -1,0 +1,48 @@
+# ---------------- 密钥与本地配置（绝不入库） ----------------
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+**/*.pem
+**/*.key
+
+# ---------------- 运行产物 / 本地数据 ----------------
+runs/
+logs/
+data/
+.shots/
+apps/jobs/data/
+apps/jobs/jobagent/data/exports/
+apps/hotspot/data/
+apps/hotspot/reports/
+apps/market/market_board/data/
+apps/kb/backup/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+*.log
+
+# ---------------- 私有工作区记录 ----------------
+.workbuddy/
+.genie
+*.genie
+
+# ---------------- Python ----------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+
+# ---------------- 编辑器 / 系统 ----------------
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,4 @@
+# 工作台主体（agentflow / web）零第三方依赖，Python 3.9+ 标准库即可运行。
+# 下面只有内嵌应用需要：
+Flask>=3.0            # apps/p02 文案生成 Agent
+psycopg[binary]>=3.1  # apps/kb 知识库（PostgreSQL + pgvector）
